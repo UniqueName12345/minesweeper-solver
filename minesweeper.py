@@ -35,7 +35,7 @@ class Minesweeper:
             "numbers": []
         }
         for i in range(1, 9):
-            self.images["numbers"].append(PhotoImage(file = "images/tile_"+str(i)+".gif"))
+            self.images["numbers"].append(PhotoImage(file=f"images/tile_{str(i)}.gif"))
 
         # set up frame
         self.tk = tk
@@ -65,12 +65,12 @@ class Minesweeper:
         # create buttons
         self.tiles = dict({})
         self.mines = 0
-        for x in range(0, SIZE_X):
-            for y in range(0, SIZE_Y):
+        for x in range(SIZE_X):
+            for y in range(SIZE_Y):
                 if y == 0:
                     self.tiles[x] = {}
 
-                id = str(x) + "_" + str(y)
+                id = f"{str(x)}_{str(y)}"
                 isMine = False
 
                 # tile image changeable for debug reasons:
@@ -100,11 +100,9 @@ class Minesweeper:
                 self.tiles[x][y] = tile
 
         # loop again to find nearby mines and display number on tile
-        for x in range(0, SIZE_X):
-            for y in range(0, SIZE_Y):
-                mc = 0
-                for n in self.getNeighbors(x, y):
-                    mc += 1 if n["isMine"] else 0
+        for x in range(SIZE_X):
+            for y in range(SIZE_Y):
+                mc = sum(1 if n["isMine"] else 0 for n in self.getNeighbors(x, y))
                 self.tiles[x][y]["mines"] = mc
 
     def restart(self):
@@ -112,12 +110,12 @@ class Minesweeper:
         self.refreshLabels()
 
     def refreshLabels(self):
-        self.labels["flags"].config(text = "Flags: "+str(self.flagCount))
-        self.labels["mines"].config(text = "Mines: "+str(self.mines))
+        self.labels["flags"].config(text=f"Flags: {str(self.flagCount)}")
+        self.labels["mines"].config(text=f"Mines: {str(self.mines)}")
 
     def gameOver(self, won):
-        for x in range(0, SIZE_X):
-            for y in range(0, SIZE_Y):
+        for x in range(SIZE_X):
+            for y in range(SIZE_Y):
                 if self.tiles[x][y]["isMine"] == False and self.tiles[x][y]["state"] == STATE_FLAGGED:
                     self.tiles[x][y]["button"].config(image = self.images["wrong"])
                 if self.tiles[x][y]["isMine"] == True and self.tiles[x][y]["state"] != STATE_FLAGGED:
@@ -126,8 +124,7 @@ class Minesweeper:
         self.tk.update()
 
         msg = "You Win! Play again?" if won else "You Lose! Play again?"
-        res = tkMessageBox.askyesno("Game Over", msg)
-        if res:
+        if res := tkMessageBox.askyesno("Game Over", msg):
             self.restart()
         else:
             self.tk.quit()
@@ -138,7 +135,7 @@ class Minesweeper:
             delta = datetime.now() - self.startTime
             ts = str(delta).split('.')[0] # drop ms
             if delta.total_seconds() < 36000:
-                ts = "0" + ts # zero-pad
+                ts = f"0{ts}"
         self.labels["time"].config(text = ts)
         self.frame.after(100, self.updateTimer)
 
@@ -168,7 +165,7 @@ class Minesweeper:
         return lambda Button: self.onRightClick(self.tiles[x][y])
 
     def onClick(self, tile):
-        if self.startTime == None:
+        if self.startTime is None:
             self.startTime = datetime.now()
 
         if tile["isMine"] == True:
@@ -190,7 +187,7 @@ class Minesweeper:
             self.gameOver(True)
 
     def onRightClick(self, tile):
-        if self.startTime == None:
+        if self.startTime is None:
             self.startTime = datetime.now()
 
         # if not clicked
